@@ -1,0 +1,58 @@
+:root{
+--ecc-bg-success: #06782d;
+}
+
+.list-no-style{
+    margin-top: 0;
+    margin-bottom: 1rem;
+    list-style: none;
+    padding: 0;
+}
+.form-select,
+.form-control {
+	border-radius: 4px !important;
+}
+.btn {
+	border-radius: 4px  !important;
+}
+
+.ecc-bg-success{
+    background-color: --ecc-bg-success !important;
+}
+.bg-success {
+    background-color: #06782d !important;
+}
+
+.gradient-bg-ecc-green {
+    background: #06782d;
+    background: linear-gradient(320deg, #17c653, #0d6f2f, #06782d);
+}
+
+.ecc-glass{
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 16px;
+    box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+    backdrop-filter: blur(5px);
+    -webkit-backdrop-filter: blur(5px);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+.stepper.stepper-pills .stepper-item .stepper-icon {
+    background-color: #e9ffee;
+    color: #06782d;
+}
+.stepper.stepper-pills .stepper-item.completed .stepper-icon, .stepper.stepper-pills .stepper-item.current.mark-completed:last-child .stepper-icon {
+    background-color: #e9ffee;
+    color: #06782d;
+}
+.stepper.stepper-pills .stepper-item.completed .stepper-icon .stepper-check, .stepper.stepper-pills .stepper-item.current.mark-completed:last-child .stepper-icon .stepper-check {
+    color: #06782d;
+}
+.stepper.stepper-pills .stepper-item.current .stepper-icon {
+    background-color: var(--ecc-bg-success);
+}
+#image-upload-panel .croppie-container .cr-slider-wrap {
+	width: 80%;
+	margin: 5px auto;
+	text-align: center;
+}
