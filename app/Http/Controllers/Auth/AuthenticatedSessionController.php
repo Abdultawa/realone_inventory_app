@@ -27,7 +27,24 @@ class AuthenticatedSessionController extends Controller
     {
         $request->authenticate();
 
+        $user = Auth::user();
+
+        // Check if the user's account is active
+        if ($user->status !== 'active') {
+            Auth::logout();
+
+            return redirect()->route('login')->withErrors([
+                'email' => 'Your account is deactivated. Please contact the administrator.',
+            ]);
+        }
+
         $request->session()->regenerate();
+
+         if ($user->role == 'admin') {
+            return redirect()->route('dashboard');
+        } elseif ($user->role == 'staff') {
+            return redirect()->route('staff.dashboard');
+        }
 
         return redirect()->intended(RouteServiceProvider::HOME);
     }

@@ -50,9 +50,24 @@ class User extends Authenticatable
     {
         return $this->belongsTo(Store::class);
     }
-    
+
     public function isAdmin()
     {
         return $this->role === 'admin';
+    }
+
+    public function assignedProducts()
+    {
+        return $this->hasMany(Product::class, 'assigned_user_id');
+    }
+
+    public function invoices()
+    {
+        return $this->hasMany(Invoice::class);
+    }
+
+    public function isStaff()
+    {
+        return $this->role === 'staff';
     }
 }

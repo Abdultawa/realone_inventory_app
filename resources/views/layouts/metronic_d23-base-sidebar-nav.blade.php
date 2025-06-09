@@ -20,6 +20,7 @@
                     <x-button-link route="{{route('products.index')}}" icon="ki-outline ki-faceid fs-1" label="Products" bgColor="btn-light-primary"/>
                     @if(auth()->user()->isAdmin())
                     <x-button-link route="{{route('stores.index')}}" icon="fas fa-users-cog fs-1" label="Stores" bgColor="btn-light-primary"/>
+                    <x-button-link route="{{route('categories.index')}}" icon="fas fa-users-cog fs-1" label="Categorys" bgColor="btn-light-primary"/>
                     <x-button-link route="{{route('users.index')}}" icon="ki-outline ki-wifi-square fs-1" label="Users" bgColor="btn-light-primary"/>
                     @endif
                     <x-button-link route="{{route('invoices.index')}}" icon="fas fa-laptop-house fs-1" label="Sales" bgColor="btn-light-primary"/>

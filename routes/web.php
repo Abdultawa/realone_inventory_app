@@ -1,12 +1,15 @@
 <?php
 
+use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\InvoiceController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\StaffDashboardController;
 use App\Http\Controllers\StoreController;
 use App\Http\Controllers\UserController;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Facades\Route;
+use Illuminate\Support\Facades\Artisan;
 
 /*
 |--------------------------------------------------------------------------
@@ -36,16 +39,25 @@ use Illuminate\Support\Facades\Route;
 
 
 
+
+Route::get('/clear-cache', function () {
+    Artisan::call('config:clear');
+    Artisan::call('cache:clear');
+    Artisan::call('config:cache');
+    return 'Cache cleared!';
+});
+
 Route::get('/', function () {
-    return view('auth.login',);
+    return view('auth.login');
     // return view('welcome');
 });
 
-Route::get('/dashboard', function () {
-    return view('dashboard');
-})->middleware(['auth', 'verified'])->name('dashboard');
+// Route::get('/dashboard', function () {
+//     return view('dashboard');
+// })->middleware(['auth', 'verified'])->name('dashboard');
 
 Route::middleware('auth')->group(function () {
+    Route::get('/dashboard', [UserController::class, 'dashboard'])->name('dashboard');
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
@@ -53,16 +65,21 @@ Route::middleware('auth')->group(function () {
     Route::resource('products', ProductController::class);
     Route::post('/products/{product}/add-quantity', [ProductController::class, 'storeQuantity'])->name('products.store_quantity');
     Route::resource('stores', StoreController::class);
+    Route::resource('categories', CategoryController::class);
     Route::resource('users', UserController::class)->except(['show']); // CRUD routes
     Route::patch('/users/{user}/deactivate', [UserController::class, 'deactivate'])->name('users.deactivate'); // Deactivate user
     Route::patch('/users/{user}/activate', [UserController::class, 'activate'])->name('users.activate'); // Activate user
 });
-    Route::middleware('auth')->group(function () {
-    Route::get('/invoices', [InvoiceController::class, 'index'])->name('invoices.index');
-    Route::get('/invoices/create', [InvoiceController::class, 'create'])->name('invoices.create');
-    Route::post('/invoices', [InvoiceController::class, 'store'])->name('invoices.store');
-    Route::get('/invoices/{invoice}', [InvoiceController::class, 'show'])->name('invoices.show');
-    Route::put('/invoices/{invoice}/status', [InvoiceController::class, 'updateStatus'])->name('invoices.updateStatus');
-    });
+Route::middleware('auth')->group(function () {
+Route::get('/invoices', [InvoiceController::class, 'index'])->name('invoices.index');
+Route::get('/invoices/create', [InvoiceController::class, 'create'])->name('invoices.create');
+Route::post('/invoices', [InvoiceController::class, 'store'])->name('invoices.store');
+Route::get('/invoices/{invoice}', [InvoiceController::class, 'show'])->name('invoices.show');
+Route::put('/invoices/{invoice}/status', [InvoiceController::class, 'updateStatus'])->name('invoices.updateStatus');
+});
+
+// Route::middleware(['auth', 'role:staff'])->group(function () {
+    Route::get('/staff/dashboard', [StaffDashboardController::class, 'index'])->name('staff.dashboard');
+// });
 
 require __DIR__.'/auth.php';

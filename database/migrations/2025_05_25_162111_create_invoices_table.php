@@ -22,6 +22,7 @@ return new class extends Migration
         $table->enum('status', ['paid', 'not-paid'])->default('not-paid');
         $table->foreignIdFor(User::class)->onDelete('cascade');
         $table->foreignId('store_id')->onDelete('cascade');
+        $table->decimal('total_amount', 10, 2)->default(0);
         $table->timestamps();
     });
 

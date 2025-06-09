@@ -73,7 +73,9 @@ class InvoiceController extends Controller
         if (!$store) {
             return back()->with('error', 'No store assigned.');
         }
+        // $totalAmount = 0;
 
+        $total = array_sum(array_map(fn($qty, $price) => $qty * $price, $request->quantity, $request->price));
         // Create invoice
         $invoice = Invoice::create([
             'invoice_number'    => 'INV-' . strtoupper(Str::random(8)),
@@ -83,6 +85,7 @@ class InvoiceController extends Controller
             'status'            => $request->status,
             'user_id'           => auth()->id(),
             'store_id'          => $store->id,
+            'total_amount'      => $total,
         ]);
 
         // Loop through each product and attach to invoice

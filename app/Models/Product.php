@@ -19,6 +19,15 @@ class Product extends Model
         'product_code',
         'category_id',
     ];
+     public function assignedUser()
+    {
+        return $this->belongsTo(User::class, 'assigned_user_id');
+    }
+
+    public function invoiceItems()
+    {
+        return $this->hasMany(InvoiceItem::class);
+    }
     public function store()
     {
         return $this->belongsTo(Store::class);
@@ -41,6 +50,17 @@ class Product extends Model
             return 'Low Stock';
         }
 
+        return 'In Stock';
+    }
+    public function getStockStatusAttribute()
+    {
+        $lowStockThreshold = config('inventory.low_stock_threshold', 10);
+
+        if ($this->quantity == 0) {
+            return 'Out of Stock';
+        } elseif ($this->quantity <= $lowStockThreshold) {
+            return 'Low Stock';
+        }
         return 'In Stock';
     }
     public function scopeByStockStatus($query, $status)
