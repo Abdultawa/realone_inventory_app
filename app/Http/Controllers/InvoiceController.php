@@ -4,9 +4,13 @@ namespace App\Http\Controllers;
 
 use App\Models\Invoice;
 use App\Models\InvoiceItem;
+use App\Models\InvoiceStatusHistory;
 use App\Models\Product;
+use App\Models\ReturnItem;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
+use Illuminate\Support\Facades\DB;
+use Log;
 
 class InvoiceController extends Controller
 {
@@ -66,6 +70,8 @@ class InvoiceController extends Controller
             'quantity.*'        => 'required|integer|min:1',
             'price'             => 'required|array',
             'price.*'           => 'required|numeric|min:0',
+            'description' => 'required|array',
+            'description.*' => 'required|string',
         ]);
 
         $store = auth()->user()->store;
@@ -73,49 +79,63 @@ class InvoiceController extends Controller
         if (!$store) {
             return back()->with('error', 'No store assigned.');
         }
-        // $totalAmount = 0;
 
+        // Calculate total
         $total = array_sum(array_map(fn($qty, $price) => $qty * $price, $request->quantity, $request->price));
-        // Create invoice
-        $invoice = Invoice::create([
-            'invoice_number'    => 'INV-' . strtoupper(Str::random(8)),
-            'customer_name'     => $request->customer_name,
-            'customer_address'  => $request->customer_address,
-            'notes'             => $request->notes,
-            'status'            => $request->status,
-            'user_id'           => auth()->id(),
-            'store_id'          => $store->id,
-            'total_amount'      => $total,
-        ]);
 
-        // Loop through each product and attach to invoice
-        foreach ($request->product_id as $index => $productId) {
-            $product = Product::where('id', $productId)->where('store_id', $store->id)->first();
+        try {
+            DB::beginTransaction();
 
-            if (!$product) {
-                return back()->with('error', "Product not found or not in your store.");
-            }
-
-            $qty = $request->quantity[$index];
-            if ($product->quantity < $qty) {
-                return back()->with('error', "{$product->name} does not have enough stock.");
-            }
-
-            // Decrement stock
-            $product->decrement('quantity', $qty);
-
-            // Create invoice item
-            InvoiceItem::create([
-                'invoice_id' => $invoice->id,
-                'product_id' => $productId,
-                'quantity'   => $qty,
-                'price'      => $request->price[$index],
+            // Create invoice
+            $invoice = Invoice::create([
+                'invoice_number'    => 'INV-' . strtoupper(Str::random(8)),
+                'customer_name'     => $request->customer_name,
+                'customer_address'  => $request->customer_address,
+                'notes'             => $request->notes,
+                'status'            => $request->status,
+                'user_id'           => auth()->id(),
+                'store_id'          => $store->id,
+                'total_amount'      => $total,
             ]);
+
+            foreach ($request->product_id as $index => $productId) {
+                $product = Product::where('id', $productId)->where('store_id', $store->id)->lockForUpdate()->first();
+
+                if (!$product) {
+                    DB::rollBack();
+                    return back()->with('error', "Product not found or not in your store.");
+                }
+
+                $qty = $request->quantity[$index];
+
+                if ($product->quantity < $qty) {
+                    DB::rollBack();
+                    return back()->with('error', "{$product->name} does not have enough stock.");
+                }
+
+                // Decrement stock
+                $product->decrement('quantity', $qty);
+
+                // Create invoice item
+                InvoiceItem::create([
+                    'invoice_id' => $invoice->id,
+                    'product_id' => $productId,
+                    'quantity'   => $qty,
+                    'price'      => $request->price[$index],
+                    'description' => $request->description[$index]
+                ]);
+            }
+
+            DB::commit();
+
+            return redirect()->route('invoices.index')->with('success', 'Invoice created successfully.');
+        } catch (\Exception $e) {
+            DB::rollBack();
+            // Log the error for debugging
+            \Log::error('Invoice creation failed: ' . $e->getMessage());
+            return back()->with('error', 'Something went wrong. Please try again.');
         }
-
-        return redirect()->route('invoices.index')->with('success', 'Invoice created successfully.');
     }
-
     // Show single invoice
     public function show($id)
     {
@@ -147,5 +167,98 @@ class InvoiceController extends Controller
         ]);
 
         return redirect()->route('invoices.show', $invoice->id)->with('success', 'Invoice status updated.');
+    }
+
+
+    public function returnItem(Request $request)
+    {
+        $validated = $request->validate([
+            'invoice_id' => 'required|exists:invoices,id',
+            'item_id' => 'required|exists:invoice_items,id',
+            'product_id' => 'required|exists:products,id',
+            'quantity' => 'required|integer|min:1',
+            'reason' => 'required|string'
+        ]);
+
+        try {
+            DB::beginTransaction();
+
+            $invoice = Invoice::lockForUpdate()->findOrFail($validated['invoice_id']);
+            $item = InvoiceItem::lockForUpdate()->findOrFail($validated['item_id']);
+            $product = Product::lockForUpdate()->findOrFail($validated['product_id']);
+
+            if ($validated['quantity'] > $item->quantity) {
+                throw new \Exception('Return quantity cannot exceed original purchase quantity');
+            }
+
+            // Update product inventory
+            $product->increment('quantity', $validated['quantity']);
+
+            // Create return record
+            ReturnItem::create([
+                'invoice_id' => $invoice->id,
+                'product_id' => $product->id,
+                'invoice_item_id' => $item->id, // Add this line
+                'quantity_returned' => $validated['quantity'],
+                'unit_price' => $item->price,
+                'total_amount' => $validated['quantity'] * $item->price,
+                'reason' => $validated['reason'],
+                'returned_by' => auth()->id(),
+                'returned_at' => now()
+            ]);
+
+            // Rest of your return logic...
+            $amountToDeduct = $validated['quantity'] * $item->price;
+
+            if ($validated['quantity'] == $item->quantity) {
+                $item->delete();
+            } else {
+                $item->decrement('quantity', $validated['quantity']);
+            }
+
+            $invoice->decrement('total_amount', $amountToDeduct);
+
+            if ($invoice->items()->count() === 0) {
+                $invoice->update(['status' => 'void']);
+                InvoiceStatusHistory::create([
+                    'invoice_id' => $invoice->id,
+                    'status' => 'void',
+                    'changed_by' => auth()->id()
+                ]);
+            }
+
+            DB::commit();
+            return back()->with('success', 'Product returned successfully');
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return back()->with('error', 'Failed to return product: ' . $e->getMessage());
+        }
+    }
+    public function print(Invoice $invoice)
+    {
+        // Load necessary relationships
+        $invoice->load('items.product');
+
+        // For PDF generation
+        $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('invoices.print', [
+            'invoice' => $invoice,
+            'company' => [
+                'name' => config('app.name'),
+                'address' => '123 Business Street, Lagos, Nigeria',
+                'phone' => '+234 800 000 0000',
+                'email' => 'info@example.com',
+                'logo' => public_path('images/logo.png') // Path to your logo
+            ]
+        ]);
+
+        // Set paper options
+        $pdf->setPaper('A4', 'portrait');
+
+        // Download or stream
+        return $pdf->stream("invoice-{$invoice->invoice_number}.pdf");
+
+        // Alternatively to download:
+        // return $pdf->download("invoice-{$invoice->invoice_number}.pdf");
     }
 }

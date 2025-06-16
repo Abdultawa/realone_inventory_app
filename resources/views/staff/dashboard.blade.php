@@ -79,9 +79,9 @@
                                 <tr>
                                     <td>{{ $product->name }}</td>
                                     <td>{{ $product->product_code ?? 'N/A' }}</td>
-                                    <td>{{ $product->quantity }}</td>
+                                    <td>{{ $product->quantity + $product->total_sold }}</td>
                                     <td>{{ $product->total_sold }}</td>
-                                    <td>{{ $product->quantity - $product->total_sold }}</td>
+                                    <td>{{ $product->quantity }}</td>
                                     <td>₦{{ number_format($product->total_value, 2) }}</td>
                                 </tr>
                             @empty

@@ -11,7 +11,7 @@ class ProductController extends Controller
 {
     public function index(Request $request)
     {
-        $query = Product::with(['store', 'category']);
+        $query = Product::orderBy('name')->with(['store', 'category']);
 
         if (!auth()->user()->isAdmin()) {
             $store = auth()->user()->store;

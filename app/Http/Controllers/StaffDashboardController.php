@@ -35,7 +35,7 @@ public function index(Request $request)
     $totalPaid = $invoices->where('status', 'paid')->sum('total_amount');
     $totalUnpaid = $invoices->where('status', 'not-paid')->sum('total_amount');
 
-    $assignedProducts = Product::where('store_id', $staff->store_id)->get();
+    $assignedProducts = Product::orderBy('name')->where('store_id', $staff->store_id)->get();
 
     foreach ($assignedProducts as $product) {
         $sold = InvoiceItem::where('product_id', $product->id)
@@ -56,7 +56,7 @@ public function index(Request $request)
     $summary = [
         'total_assigned' => $assignedProducts->count(),
         'total_sold' => $assignedProducts->sum('total_sold'),
-        'remaining_stock' => $assignedProducts->sum(fn ($p) => $p->quantity - $p->total_sold),
+        'remaining_stock' => $assignedProducts->sum(fn ($p) => $p->quantity),
         'total_paid' => $totalPaid,
         'total_unpaid' => $totalUnpaid,
     ];

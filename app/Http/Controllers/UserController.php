@@ -24,7 +24,8 @@ class UserController extends Controller
         // Base query for products
         $productQuery = Product::query()
             ->when($currentStoreId, fn($q) => $q->where('store_id', $currentStoreId))
-            ->with('category');
+            ->with('category')->
+            orderBy('name');
 
         // Total products count and change
         $totalProducts = $productQuery->count();
@@ -157,6 +158,7 @@ class UserController extends Controller
             'email' => 'required|email|unique:users,email',
             'password' => 'required|string|min:6|confirmed',
             'role' => 'required|string',
+            'store_id' => 'nullable|exists:stores,id',
         ]);
 
         // Create the user
@@ -165,11 +167,40 @@ class UserController extends Controller
             'email' => $request->email,
             'password' => Hash::make($request->password),
             'role' => $request->role,
+            'store_id' => $request->store_id,
         ]);
 
         return redirect()->route('users.index')->with('success', 'User created successfully!');
     }
 
+    public function edit(User $user)
+    {
+        $stores = Store::all();
+        return view('users.edit', compact('user', 'stores'));
+    }
+
+    // Update a user
+    public function update(Request $request, User $user)
+    {
+        $request->validate([
+            'name' => 'required|string|max:255',
+            'email' => 'required|email|unique:users,email,' . $user->id,
+            'password' => 'nullable|string|min:6|confirmed',
+            'role' => 'required|string',
+            'store_id' => 'nullable|exists:stores,id',
+        ]);
+
+        // Update the user
+        $user->update([
+            'name' => $request->name,
+            'email' => $request->email,
+            'password' => $request->password ? Hash::make($request->password) : $user->password,
+            'role' => $request->role,
+            'store_id' => $request->store_id,
+        ]);
+
+        return redirect()->route('users.index')->with('success', 'User updated successfully!');
+    }
     // Deactivate a user
     public function deactivate(User $user)
     {

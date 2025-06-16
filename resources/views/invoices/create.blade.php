@@ -40,6 +40,7 @@
                                             <th class="min-w-300px">Product</th>
                                             <th class="min-w-100px">QTY</th>
                                             <th class="min-w-150px">Price</th>
+                                            <th class="min-w-200px">Description</th>
                                             <th class="min-w-150px text-end">Total</th>
                                             <th class="min-w-75px text-end">Action</th>
                                         </tr>
@@ -50,10 +51,13 @@
                                                 <tr class="border-bottom border-bottom-dashed" data-kt-element="item">
                                                     <td>
                                                        <select name="product_id[]" class="form-select form-select-solid product-select" required>
-                                                            <option value="" disabled selected>Select a product</option>
-                                                            @foreach ($products as $product)
-                                                                <option value="{{ $product->id }}" data-price="{{ $product->price }}">
-                                                                    {{ $product->name }}
+                                                            <option value="" disabled>Select a product</option>
+                                                            @foreach ($products as $prod)
+                                                                <option value="{{ $prod->id }}"
+                                                                    data-price="{{ $prod->price }}"
+                                                                    data-description="{{ $prod->description }}"
+                                                                    {{ $prod->id == $product->id ? 'selected' : '' }}>
+                                                                    {{ $prod->name }}
                                                                 </option>
                                                             @endforeach
                                                         </select>
@@ -62,15 +66,18 @@
                                                         <input class="form-control form-control-solid quantity-input" type="number" min="1" name="quantity[]" value="{{ $product->pivot->quantity }}" required>
                                                     </td>
                                                     <td>
-                                                        <input class="form-control form-control-solid text-end price-input" type="text" name="price[]" value="{{ $product->price }}" readonly>
+                                                        <input class="form-control form-control-solid text-end price-input" type="number" min="0" step="0.01" name="price[]" value="{{ $product->price }}" required>
+                                                    </td>
+                                                    <td>
+                                                        <input class="form-control form-control-solid description-input" type="text" name="description[]" value="{{ $product->description }}" placeholder="Item description" required>
                                                     </td>
                                                     <td class="text-end">
-                                                        $<span class="item-total">{{ number_format($product->pivot->quantity * $product->price, 2) }}</span>
+                                                        ₦<span class="item-total">{{ number_format($product->pivot->quantity * $product->price, 2) }}</span>
                                                     </td>
                                                     <td class="text-end">
-                                                        <button type="button" class="btn btn-sm btn-icon btn-active-color-primary" data-kt-element="remove-item">
-                                                            <i class="ki-duotone ki-trash fs-3"></i>
-                                                        </button>
+                                                    <button type="button" class="btn btn-sm btn-icon btn-active-color-primary" data-kt-element="remove-item">
+                                                        <i class="fas fa-trash fs-3"></i>
+                                                    </button>
                                                     </td>
                                                 </tr>
                                             @endforeach
@@ -80,7 +87,9 @@
                                                     <select name="product_id[]" class="form-select form-select-solid product-select" required>
                                                         <option value="" disabled selected>Select a product</option>
                                                         @foreach ($products as $product)
-                                                            <option value="{{ $product->id }}" data-price="{{ $product->price }}">
+                                                            <option value="{{ $product->id }}"
+                                                                data-price="{{ $product->price }}"
+                                                                data-description="{{ $product->description }}">
                                                                 {{ $product->name }}
                                                             </option>
                                                         @endforeach
@@ -90,22 +99,25 @@
                                                     <input class="form-control form-control-solid quantity-input" type="number" min="1" name="quantity[]" value="1" required>
                                                 </td>
                                                 <td>
-                                                    <input class="form-control form-control-solid text-end price-input" type="text" name="price[]" readonly>
+                                                    <input class="form-control form-control-solid text-end price-input" type="number" min="0" step="0.01" name="price[]" value="0.00" required>
+                                                </td>
+                                                <td>
+                                                    <input class="form-control form-control-solid description-input" type="text" name="description[]" placeholder="Item description" required>
                                                 </td>
                                                 <td class="text-end">
                                                     ₦<span class="item-total">0.00</span>
                                                 </td>
                                                 <td class="text-end">
-                                                    <button type="button" class="btn btn-sm btn-icon btn-active-color-primary" data-kt-element="remove-item">
-                                                        <i class="ki-duotone ki-trash fs-3"></i>
-                                                    </button>
+                                                <button type="button" class="btn btn-sm btn-icon btn-active-color-primary" data-kt-element="remove-item">
+                                                    <i class="fas fa-trash fs-3"></i>
+                                                </button>
                                                 </td>
                                             </tr>
                                         @endif
                                     </tbody>
                                     <tfoot>
                                         <tr>
-                                            <th colspan="3" class="text-end">Total</th>
+                                            <th colspan="4" class="text-end">Total</th>
                                             <th class="text-end">₦<span id="grand-total">0.00</span></th>
                                             <th></th>
                                         </tr>
@@ -137,7 +149,7 @@
                             <!-- Notes -->
                             <div>
                                 <label class="form-label fs-6 fw-bold">Notes</label>
-                                <textarea name="notes" class="form-control" rows="3" placeholder="Thanks for your business" required></textarea>
+                                <textarea name="notes" class="form-control" rows="3" placeholder="Thanks for your business" required>Thanks for your business</textarea>
                             </div>
                             <!-- Submit Button -->
                             <div class="text-end mt-5">
@@ -185,6 +197,7 @@
                 const newRow = itemsTable.querySelector("tbody tr").cloneNode(true);
                 newRow.querySelector(".product-select").value = "";
                 newRow.querySelector(".price-input").value = "0.00";
+                newRow.querySelector(".description-input").value = "";
                 newRow.querySelector(".quantity-input").value = "1";
                 newRow.querySelector(".item-total").textContent = "0.00";
 
@@ -196,11 +209,14 @@
                 newRow.querySelector(".product-select").addEventListener("change", (e) => {
                     const selectedOption = e.target.options[e.target.selectedIndex];
                     const price = selectedOption.getAttribute("data-price");
+                    const description = selectedOption.getAttribute("data-description");
                     newRow.querySelector(".price-input").value = parseFloat(price).toFixed(2);
+                    newRow.querySelector(".description-input").value = description;
                     updateTotals();
                 });
 
                 newRow.querySelector(".quantity-input").addEventListener("input", updateTotals);
+                newRow.querySelector(".price-input").addEventListener("input", updateTotals);
 
                 itemsTable.querySelector("tbody").appendChild(newRow);
             };
@@ -222,11 +238,14 @@
                 row.querySelector(".product-select").addEventListener("change", (e) => {
                     const selectedOption = e.target.options[e.target.selectedIndex];
                     const price = selectedOption.getAttribute("data-price");
+                    const description = selectedOption.getAttribute("data-description");
                     row.querySelector(".price-input").value = parseFloat(price).toFixed(2);
+                    row.querySelector(".description-input").value = description;
                     updateTotals();
                 });
 
                 row.querySelector(".quantity-input").addEventListener("input", updateTotals);
+                row.querySelector(".price-input").addEventListener("input", updateTotals);
             });
 
             updateTotals();

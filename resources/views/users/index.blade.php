@@ -124,6 +124,11 @@
                                                     </div>
                                                 @endif
                                                 <!--end::Menu item-->
+                                                 <!--begin::Menu item-->
+                                                <div class="menu-item px-3">
+                                                    <a href="{{route('users.edit', $user->id)}}" class="menu-link px-3">Edit</a>
+                                                </div>
+                                                <!--end::Menu item-->
                                                 <!--begin::Menu item-->
                                                 <div class="menu-item px-3">
                                                     <form action="{{ route('users.destroy', $user->id) }}"

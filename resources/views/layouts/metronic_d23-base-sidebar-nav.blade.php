@@ -16,7 +16,12 @@
             <div class="row row-cols-3" data-kt-buttons="true" data-kt-buttons-target="[data-kt-button]">
 
                     {{-- <div class="col-12"><h6>Admin Menu</h6></div> --}}
+                    @if(auth()->user()->isStaff())
+                    <x-button-link route="{{route('staff.dashboard')}}" icon="ki-outline ki-home fs-1" label="Dashboard" bgColor="btn-light-primary"/>
+                    @endif
+                    @if(auth()->user()->isAdmin())
                     <x-button-link route="{{route('dashboard')}}" icon="fas fa-home" label="Dashboard" bgColor="btn-light-primary"/>
+                    @endif
                     <x-button-link route="{{route('products.index')}}" icon="ki-outline ki-faceid fs-1" label="Products" bgColor="btn-light-primary"/>
                     @if(auth()->user()->isAdmin())
                     <x-button-link route="{{route('stores.index')}}" icon="fas fa-users-cog fs-1" label="Stores" bgColor="btn-light-primary"/>

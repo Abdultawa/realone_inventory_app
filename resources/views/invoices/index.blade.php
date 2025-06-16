@@ -25,6 +25,7 @@
                                 <option value="">Show All</option>
                                 <option value="paid" {{ request('status') == 'paid' ? 'selected' : '' }}>Paid</option>
                                 <option value="not-paid" {{ request('status') == 'not-paid' ? 'selected' : '' }}>Not Paid</option>
+                                <option value="void" {{ request('status') == 'void' ? 'selected' : '' }}>Void</option>
                             </select>
                         </div>
                         @if(auth()->user()->isAdmin())
@@ -82,8 +83,10 @@
                                 <td class="text-end">
                                     @if ($invoice->status == 'paid')
                                         <span class="badge py-2 px-3 badge-light-success">Paid</span>
-                                    @else
+                                    @elseif ($invoice->status == 'not-paid')
                                         <span class="badge py-2 px-3 badge-light-warning">Not Paid</span>
+                                    @elseif ($invoice->status == 'void')
+                                        <span class="badge py-2 px-3 badge-light-danger">Void</span>
                                     @endif
                                 </td>
                                 <td class="text-end">
