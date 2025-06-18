@@ -32,6 +32,13 @@ class Product extends Model
     {
         return $this->belongsTo(Store::class);
     }
+
+    public function stores()
+    {
+        return $this->belongsToMany(Store::class)
+            ->withPivot('quantity')
+            ->withTimestamps();
+    }
     public function user()
     {
         return $this->belongsTo(User::class);

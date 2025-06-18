@@ -138,4 +138,12 @@ class ProductController extends Controller
         Product::destroy($id);
         return redirect()->route('products.index')->with('status', 'Product deleted.');
     }
+
+    public function getDetails(Product $product)
+    {
+        return response()->json([
+            'quantity' => $product->quantity,
+            'store_id' => $product->store_id
+        ]);
+    }
 }

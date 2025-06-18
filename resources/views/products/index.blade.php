@@ -92,7 +92,7 @@
                                 </td>
                                 <td class="text-end">#{{ $product->product_code ?? 'N/A' }}</td>
                                 <td class="text-end">{{ $product->created_at->format('d M, Y') }}</td>
-                                <td class="text-end">${{ number_format($product->price, 2) }}</td>
+                                <td class="text-end">₦{{ number_format($product->price, 2) }}</td>
                                 <td class="text-end">
                                     @php
                                         $status = $product->status;

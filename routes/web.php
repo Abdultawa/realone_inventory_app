@@ -3,6 +3,7 @@
 use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\InvoiceController;
 use App\Http\Controllers\ProductController;
+use App\Http\Controllers\ProductTransferController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\StaffDashboardController;
 use App\Http\Controllers\StoreController;
@@ -77,7 +78,9 @@ Route::middleware(['auth', 'role:admin'])->group(function () {
     Route::resource('stores', StoreController::class);
     Route::resource('categories', CategoryController::class);
     Route::resource('users', UserController::class)->except(['show']); // CRUD routes
-
+    Route::resource('transfers', ProductTransferController::class)->except(['edit', 'update', 'destroy']);
+    Route::get('/admin/products/{product}/details', [ProductController::class, 'getDetails'])
+    ->name('admin.products.details');
 });
 
 Route::middleware(['auth', 'role:staff'])->group(function () {
