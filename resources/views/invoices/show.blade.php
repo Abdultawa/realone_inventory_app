@@ -48,6 +48,7 @@
                             <th class="text-end">Unit Price</th>
                             <th class="text-end">Total</th>
                             @if($invoice->status === 'not-paid')
+                            <th class="text-end">Creted at</th>
                             <th class="text-end">Actions</th>
                             @endif
                         </tr>
@@ -61,6 +62,7 @@
                                 <td class="text-end">₦{{ number_format($item->price, 2) }}</td>
                                 <td class="text-end">₦{{ number_format($item->price * $item->quantity, 2) }}</td>
                                 @if($invoice->status === 'not-paid')
+                                <td class="text-end">{{ $item->created_at }}</td>
                                 <td class="text-end">
                                     <form method="POST" action="{{ route('invoices.returnItem') }}" class="d-inline">
                                         @csrf
@@ -107,6 +109,9 @@
                                 <i class="fas fa-check-circle"></i> Mark as Paid
                             </button>
                         </form>
+                        <a href="{{route('invoices.edit', $invoice)}}" class="btn btn-danger me-2">
+                            <i class="fas fa-add"></i> Add to Invoices
+                        </a>
                     @endif
 
                     <div>

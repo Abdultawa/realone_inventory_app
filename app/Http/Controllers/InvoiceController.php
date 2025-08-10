@@ -136,6 +136,54 @@ class InvoiceController extends Controller
             return back()->with('error', 'Something went wrong. Please try again.');
         }
     }
+    public function edit(Invoice $invoice)
+    {
+        // eager-load invoice items and their product (adjust relation names if different)
+        $invoice->load('items.product');
+
+        // all products to populate the selects
+        $products = Product::orderBy('name')->get();
+
+        return view('invoices.edit', compact('invoice', 'products'));
+    }
+
+    public function update(Request $request, Invoice $invoice)
+{
+    $data = $request->validate([
+        'customer_name'    => 'required|string|max:255',
+        'customer_address' => 'required|string',
+        'discount'         => 'nullable|numeric',
+        'status'           => 'required|string',
+        'notes'            => 'nullable|string',
+        // items arrays will be processed below
+    ]);
+
+    DB::transaction(function () use ($request, $invoice, $data) {
+        // update invoice main fields
+        $invoice->update($data);
+
+        // remove existing items (or adjust to update instead of delete/create)
+        $invoice->items()->delete();
+
+        $productIds   = $request->input('product_id', []);
+        $quantities   = $request->input('quantity', []);
+        $prices       = $request->input('price', []);
+        $descriptions = $request->input('description', []);
+
+        foreach ($productIds as $i => $productId) {
+            if (!$productId) continue;
+
+            $invoice->items()->create([
+                'product_id'  => $productId,
+                'quantity'    => $quantities[$i] ?? 1,
+                'price'       => $prices[$i] ?? 0,
+                'description' => $descriptions[$i] ?? null,
+            ]);
+        }
+    });
+
+    return redirect()->route('invoices.show', $invoice)->with('success', 'Invoice updated successfully.');
+}
     // Show single invoice
     public function show($id)
     {

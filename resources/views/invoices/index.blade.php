@@ -3,9 +3,11 @@
         <div class="card-header d-flex justify-content-between align-items-center mb-5">
             <h2 class="card-title">Invoices</h2>
             <div class="card-toolbar">
+                @unless (auth()->user()->isAdmin())
                 <a href="{{ route('invoices.create') }}" class="btn btn-primary">
                     <i class="ki-duotone ki-plus fs-2"></i> Create Invoice
                 </a>
+                @endunless
             </div>
         </div>
         <div class="card card-flush h-xl-100">

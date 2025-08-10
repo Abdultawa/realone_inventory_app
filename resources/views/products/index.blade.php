@@ -76,6 +76,7 @@
                         <tr class="text-start text-gray-500 fw-bold fs-7 text-uppercase gs-0">
                             <th class="min-w-150px">Item</th>
                             <th class="text-end pe-3 min-w-100px">Product Code</th>
+                            <th class="text-end pe-3 min-w-100px">Store</th>
                             <th class="text-end pe-3 min-w-150px">Date Added</th>
                             <th class="text-end pe-3 min-w-100px">Price</th>
                             <th class="text-end pe-3 min-w-100px">Status</th>
@@ -91,6 +92,7 @@
                                     </a>
                                 </td>
                                 <td class="text-end">#{{ $product->product_code ?? 'N/A' }}</td>
+                                <td class="text-end">{{ $product->store->name ?? 'N/A' }}</td>
                                 <td class="text-end">{{ $product->created_at->format('d M, Y') }}</td>
                                 <td class="text-end">₦{{ number_format($product->price, 2) }}</td>
                                 <td class="text-end">

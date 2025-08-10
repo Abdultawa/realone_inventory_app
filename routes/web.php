@@ -66,6 +66,8 @@ Route::middleware('auth')->group(function () {
     Route::put('/invoices/{invoice}/status', [InvoiceController::class, 'updateStatus'])->name('invoices.updateStatus');
     Route::put('/invoices/return-item', [InvoiceController::class, 'returnItem'])->name('invoices.returnItem');
     Route::get('/invoices/{invoice}/print', [InvoiceController::class, 'print'])->name('invoices.print');
+    Route::get('/invoices/{invoice}/edit', [InvoiceController::class, 'edit'])->name('invoices.edit');
+    Route::put('/invoices/{invoice}/update', [InvoiceController::class, 'update'])->name('invoices.update');
 });
 
 Route::middleware(['auth', 'role:admin'])->group(function () {

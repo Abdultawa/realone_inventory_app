@@ -107,7 +107,7 @@ class UserController extends Controller
         $inventoryProducts = $productQuery->clone()
             ->orderBy('created_at', 'desc')
             ->limit(10)
-            ->get(['id', 'product_code', 'name', 'price', 'quantity', 'created_at', 'category_id']);
+            ->get(['id', 'product_code', 'name', 'price', 'quantity', 'created_at', 'category_id', 'store_id']);
 
         // All categories for filter
         $categories = Category::orderBy('name')->get(['id', 'name']);

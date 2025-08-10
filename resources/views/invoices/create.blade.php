@@ -18,7 +18,7 @@
                             {{ session('error') }}
                         </div>
                         @endif
-                        <form id="kt_invoice_form" action="{{ route('invoices.store') }}" method="POST">
+                        <form id="invoiceForm" action="{{ route('invoices.store') }}" method="POST">
                             @csrf
                             <!-- Customer Details -->
                             <div class="row mb-5">
@@ -50,7 +50,7 @@
                                             @foreach($orderProducts as $product)
                                                 <tr class="border-bottom border-bottom-dashed" data-kt-element="item">
                                                     <td>
-                                                       <select name="product_id[]" class="form-select form-select-solid product-select" required>
+                                                       {{-- <select name="product_id[]" class="form-select form-select-solid product-select" required>
                                                             <option value="" disabled>Select a product</option>
                                                             @foreach ($products as $prod)
                                                                 <option value="{{ $prod->id }}"
@@ -60,7 +60,26 @@
                                                                     {{ $prod->name }}
                                                                 </option>
                                                             @endforeach
+                                                        </select> --}}
+                                                        <div class="form-group form-control form-control-solid pb-6">
+                                                        <select
+                                                            name="product_id[]"
+                                                            class="form-select form-select-solid product-select"
+                                                            data-control="select2"
+                                                            data-placeholder="Select a product"
+                                                            required
+                                                        >
+                                                            <option></option> <!-- empty option for placeholder -->
+                                                            @foreach ($products as $prod)
+                                                                <option value="{{ $prod->id }}"
+                                                                    data-price="{{ $prod->price }}"
+                                                                    data-description="{{ $prod->description }}"
+                                                                    {{ $prod->id == $product->id ? 'selected' : '' }}>
+                                                                    {{ $prod->name }}
+                                                                </option>
+                                                            @endforeach
                                                         </select>
+                                                    </div>
                                                     </td>
                                                     <td>
                                                         <input class="form-control form-control-solid quantity-input" type="number" min="1" name="quantity[]" value="{{ $product->pivot->quantity }}" required>
@@ -153,7 +172,14 @@
                             </div>
                             <!-- Submit Button -->
                             <div class="text-end mt-5">
-                                <button type="submit" class="btn btn-primary">Create Invoice</button>
+                                {{-- <button type="submit" class="btn btn-primary">Create Invoice</button> --}}
+                                <button type="submit" id="createInvoiceBtn" class="btn btn-primary">
+                                    <span class="indicator-label">Create Invoice</span>
+                                    <span class="indicator-progress" style="display: none;">
+                                        Please wait...
+                                        <span class="spinner-border spinner-border-sm align-middle ms-2"></span>
+                                    </span>
+                                </button>
                             </div>
                         </form>
                     </div>
@@ -162,6 +188,10 @@
         </div>
     </div>
     <!-- JS for Dynamic Logic -->
+    {{-- <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script> --}}
+
     <script>
         document.addEventListener("DOMContentLoaded", () => {
             const itemsTable = document.querySelector("[data-kt-element='items']");
@@ -192,63 +222,78 @@
                 grandTotalElement.textContent = discountedTotal.toFixed(2);
             };
 
-            // Add new item row
-            const addItem = () => {
-                const newRow = itemsTable.querySelector("tbody tr").cloneNode(true);
-                newRow.querySelector(".product-select").value = "";
-                newRow.querySelector(".price-input").value = "0.00";
-                newRow.querySelector(".description-input").value = "";
-                newRow.querySelector(".quantity-input").value = "1";
-                newRow.querySelector(".item-total").textContent = "0.00";
+            // jQuery ready for Select2 and dynamic logic
+            $(document).ready(function () {
+                // Initialize Select2 for all current selects
+                function initSelect2() {
+                    $('.product-select').select2({
+                        placeholder: "Select a product",
+                        allowClear: true,
+                        width: '100%'
+                    });
+                }
+                initSelect2();
 
-                newRow.querySelector("[data-kt-element='remove-item']").addEventListener("click", () => {
-                    newRow.remove();
+                // Update row data when product changes
+                $(document).on('change', '.product-select', function () {
+                    const row = $(this).closest('tr');
+                    const selectedOption = $(this).find(':selected');
+                    const price = selectedOption.data('price');
+                    const description = selectedOption.data('description');
+                    row.find('.price-input').val(parseFloat(price).toFixed(2));
+                    row.find('.description-input').val(description);
                     updateTotals();
                 });
 
-                newRow.querySelector(".product-select").addEventListener("change", (e) => {
-                    const selectedOption = e.target.options[e.target.selectedIndex];
-                    const price = selectedOption.getAttribute("data-price");
-                    const description = selectedOption.getAttribute("data-description");
-                    newRow.querySelector(".price-input").value = parseFloat(price).toFixed(2);
-                    newRow.querySelector(".description-input").value = description;
+                // Quantity or price change updates total
+                $(document).on('input', '.quantity-input, .price-input', function () {
                     updateTotals();
                 });
 
-                newRow.querySelector(".quantity-input").addEventListener("input", updateTotals);
-                newRow.querySelector(".price-input").addEventListener("input", updateTotals);
+                // Remove row
+                $(document).on('click', '[data-kt-element="remove-item"]', function () {
+                    $(this).closest('tr').remove();
+                    updateTotals();
+                });
 
-                itemsTable.querySelector("tbody").appendChild(newRow);
-            };
+                // Add new item row
+                addItemButton.addEventListener("click", (e) => {
+                    e.preventDefault();
+                    const firstRow = $("[data-kt-element='items'] tbody tr:first");
+                    const newRow = firstRow.clone();
 
-            // Attach event listeners
-            addItemButton.addEventListener("click", (e) => {
-                e.preventDefault();
-                addItem();
+                    // Reset fields
+                    newRow.find('.product-select').val('').trigger('change');
+                    newRow.find('.price-input').val('0.00');
+                    newRow.find('.description-input').val('');
+                    newRow.find('.quantity-input').val('1');
+                    newRow.find('.item-total').text('0.00');
+
+                    $("[data-kt-element='items'] tbody").append(newRow);
+
+                    // Re-init Select2 for the new row
+                    initSelect2();
+                });
+
+                // Discount change
+                $('#discount-select').on('change', function () {
+                    updateTotals();
+                });
+
+                // Initial totals calculation
+                updateTotals();
             });
-
-            discountSelect.addEventListener("change", updateTotals);
-
-            itemsTable.querySelectorAll("[data-kt-element='item']").forEach(row => {
-                row.querySelector("[data-kt-element='remove-item']").addEventListener("click", () => {
-                    row.remove();
-                    updateTotals();
-                });
-
-                row.querySelector(".product-select").addEventListener("change", (e) => {
-                    const selectedOption = e.target.options[e.target.selectedIndex];
-                    const price = selectedOption.getAttribute("data-price");
-                    const description = selectedOption.getAttribute("data-description");
-                    row.querySelector(".price-input").value = parseFloat(price).toFixed(2);
-                    row.querySelector(".description-input").value = description;
-                    updateTotals();
-                });
-
-                row.querySelector(".quantity-input").addEventListener("input", updateTotals);
-                row.querySelector(".price-input").addEventListener("input", updateTotals);
-            });
-
-            updateTotals();
         });
+        document.getElementById('invoiceForm').addEventListener('submit', function(e) {
+        let btn = document.getElementById('createInvoiceBtn');
+
+        // Disable button immediately
+        btn.disabled = true;
+
+        // Show loading spinner & hide label
+        btn.querySelector('.indicator-label').style.display = 'none';
+        btn.querySelector('.indicator-progress').style.display = 'inline-block';
+    });
     </script>
+
 </x-app-layout>

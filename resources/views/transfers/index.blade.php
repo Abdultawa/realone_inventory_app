@@ -53,7 +53,7 @@
                                         </td>
                                         <td>{{ $transfer->quantity }}</td>
                                         <td>{{ $transfer->transferredBy->name }}</td>
-                                        {{-- <td>{{ $transfer->transferred_at->now() }}</td> --}}
+                                        <td>{{ $transfer->transferred_at }}</td>
                                         <td class="text-end">
                                             <a href="{{ route('transfers.show', $transfer) }}" class="btn btn-icon btn-bg-light btn-active-color-primary btn-sm me-1">
                                                 <i class="ki-duotone ki-eye fs-2"></i>

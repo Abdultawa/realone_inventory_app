@@ -34,6 +34,10 @@
 		<!--begin::Global Stylesheets Bundle(mandatory for all pages)-->
 		<link href="{{asset('modules/metronic_v8.2.7/plugins/global/plugins.bundle.css')}}" rel="stylesheet" type="text/css" />
 		<link href="{{asset('modules/metronic_v8.2.7/css/style.bundle.css')}}" rel="stylesheet" type="text/css" />
+
+        <!-- Select2 CSS -->
+        <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+
 		<!--end::Global Stylesheets Bundle-->
 		<script>
         // Frame-busting to prevent site from being loaded within a frame without permission (click-jacking)
@@ -213,6 +217,7 @@
 		<script src="{{ asset('modules/metronic_v8.2.7/plugins/custom/fullcalendar/fullcalendar.bundle.js')}}"></script>
 {{--
         <script src="https://cdn.amcharts.com/lib/5/index.js"></script>
+        <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 		<script src="https://cdn.amcharts.com/lib/5/xy.js"></script>
 		<script src="https://cdn.amcharts.com/lib/5/percent.js"></script>
 		<script src="https://cdn.amcharts.com/lib/5/radar.js"></script>
@@ -223,6 +228,8 @@
 		<script src="https://cdn.amcharts.com/lib/5/geodata/usaLow.js"></script>
 		<script src="https://cdn.amcharts.com/lib/5/geodata/worldTimeZonesLow.js"></script>
 		<script src="https://cdn.amcharts.com/lib/5/geodata/worldTimeZoneAreasLow.js"></script>
+
+        <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
 		<script src="{{ asset('modules/metronic_v8.2.7/plugins/custom/datatables/datatables.bundle.js')}}"></script>
 --}}
 		<!--end::Vendors Javascript-->
